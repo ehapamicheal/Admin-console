@@ -222,7 +222,7 @@ const UserManagementTable = () => {
         </div>
 
         {/*========== FILTER ROLE DROPDOWN ==========*/}
-        <div className="mt-6 flex flex-col md:flex-row items-center gap-3">
+        <div className="mt-6 flex flex-col md:flex-row md:items-center gap-3">
             <div className="relative w-45" ref={dropDownRef}>
                 <button
                 type="button"
@@ -265,7 +265,7 @@ const UserManagementTable = () => {
             <button
                 onClick={handleExportCSV}
                 disabled={exporting}
-                className="text-red-1 text-sm cursor-pointer transition delay-75 hover:bg-red-1 hover:text-white border border-red-1 rounded-3xl py-2 px-3 disabled:opacity-60"
+                className="text-red-1 text-sm w-fit cursor-pointer transition delay-75 hover:bg-red-1 hover:text-white border border-red-1 rounded-3xl py-2 px-3 disabled:opacity-60"
                 type="button"
                 >
                {exporting ? "Preparing..." : "Export as CSV"}

@@ -47,7 +47,7 @@ const Header = ({ setIsOpen, setIsLoggedIn }) => {
       <div className="header_main flex items-center justify-between mx-2 xl:mx-4 py-4">
         <div className="header_menu flex items-center gap-2">
         <div className="menu_box">
-            <RxHamburgerMenu className="open_menu cursor-pointer text-2xl" onClick={() => setIsOpen(true)} />
+            <RxHamburgerMenu className="open_menu cursor-pointer text-xl md:text-2xl" onClick={() => setIsOpen(true)} />
          </div>
           <h3 className="font-semibold text-sm md:text-lg text-black-1 font-dm-sans leading-5">
             {title}
