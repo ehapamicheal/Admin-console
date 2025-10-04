@@ -1,4 +1,4 @@
-import AddProducts from '../../components/AddProducts';
+import { AddProducts } from "../../sections/products-management";
 
 const ProductsManagement = () => {
   return (

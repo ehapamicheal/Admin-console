@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
-import { IoIosNotifications } from "react-icons/io";
 import { useLocation, useNavigate } from "react-router-dom";
 import Avatar from "../assets/images/avatar.png";
 
@@ -56,13 +55,6 @@ const Header = ({ setIsOpen, setIsLoggedIn }) => {
         </div>
 
         <div className="right_side flex items-center gap-3">
-          <div className="relative">
-            <IoIosNotifications className="cursor-pointer text-black-2 text-2xl" />
-            <span className="absolute -top-2 right-0 text-[6.92px] text-white font-bold bg-red-2 p-0.5 flex items-center justify-center w-4 h-4 rounded-full">
-              26
-            </span>
-          </div>
-
           <div className="relative" ref={dropdownRef}>
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => setDropdownOpen(!dropdownOpen)}>
         

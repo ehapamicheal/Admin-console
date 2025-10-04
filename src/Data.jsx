@@ -28,4 +28,9 @@ export const sidebarLinks = [
     }
 ];
 
+export const roles = ["admin", "sponsor"];
+
+
+export const fulfilledStatus = ["shipped", "delivered", "completed", "returned", "cancelled"];
+
   

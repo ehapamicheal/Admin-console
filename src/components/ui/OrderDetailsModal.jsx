@@ -23,6 +23,12 @@ const OrderDetailsModal = ({ order, onClose }) => {
         </div>
 
         <div className="flex flex-col gap-y-5 pb-3 overflow-y-auto max-h-[80vh]">
+
+          <div className="flex justify-between border-b border-b-gray-2 pb-2 px-4">
+            <h3 className="text-base font-bold text-black-1">OrderId</h3>
+            <p className="text-sm md:text-base font-medium text-grey-1">{order.id}</p>
+          </div>
+
           <div className="flex justify-between border-b border-b-gray-2 pb-2 px-4">
             <h3 className="text-base font-bold text-black-1">Date</h3>
             <p className="text-sm md:text-base font-medium text-grey-1">{formatDate(order.createdAt)}</p>
