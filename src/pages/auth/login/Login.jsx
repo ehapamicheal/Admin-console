@@ -35,8 +35,6 @@ const Login = ({ setIsLoggedIn }) => {
         }
     };
        
-      
-
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-bg px-2 md:px-4">

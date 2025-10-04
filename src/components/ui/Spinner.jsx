@@ -1,5 +1,5 @@
 
-const Spinner = () => {
+const Spinner = ({title}) => {
   return (
     <div className="fixed inset-0 z-50 flex justify-center items-center">
       <div className="absolute inset-0 bg-black opacity-50"></div>
@@ -15,7 +15,8 @@ const Spinner = () => {
             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
           </div>
         </div>
-        <p className="mt-4 text-xl text-red-500 font-medium">Loading order details...</p>
+        {/* <p className="mt-4 text-xl text-red-500 font-medium">Loading order details...</p> */}
+         <p className="mt-4 text-xl text-red-500 font-medium">{title}</p>
       </div>
     </div>
   );

@@ -1,9 +1,8 @@
-import { RiCloseLine, RiImageAddFill } from "react-icons/ri";
-import { createCategory} from "../api/categoryApi";
+import { RiCloseLine, RiArrowDownSLine } from "react-icons/ri";
+import { createCategory, getCategories } from "../api/categoryApi";
 import { createProduct } from "../api/productApi";
-import { useState } from 'react';
+import { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
-
 
 const AddProductModal = ({ isOpen, onClose, onAddProduct }) => {
   const [title, setTitle] = useState("");
@@ -13,34 +12,93 @@ const AddProductModal = ({ isOpen, onClose, onAddProduct }) => {
   const [image, setImage] = useState("");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryDescription, setNewCategoryDescription] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [categories, setCategories] = useState([]);
   const [sizes, setSizes] = useState("");
   const [colors, setColors] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  const dropdownRef = useRef(null);
 
-  const capitalizeFirstLetter = (string) => 
+  const capitalizeFirstLetter = (string) =>
     string ? string.charAt(0).toUpperCase() + string.slice(1) : "";
-  
+
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setStock("");
+    setPrice("");
+    setImage("");
+    setNewCategoryName("");
+    setNewCategoryDescription("");
+    setSelectedCategoryId("");
+    setSizes("");
+    setColors("");
+    setError("");
+    setDropdownOpen(false);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await getCategories();
+        setCategories(res);
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
+    };
+
+    if (isOpen) {
+      fetchCategories();
+    }
+  }, [isOpen]);
+
+  // close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    if (!title || !stock || !price || !newCategoryName || !newCategoryDescription || !sizes || !colors) {
-      toast.error("Please fill in all fields.");
+    if (!title || !stock || !price || !sizes || !colors) {
+      toast.error("Please fill in all required fields.");
       setLoading(false);
       return;
     }
 
+    let categoryIdToUse = selectedCategoryId;
+
     try {
-      const capitalizedCategory = capitalizeFirstLetter(newCategoryName);
-      const newCat = await createCategory({
-        name: capitalizedCategory,
-        description: newCategoryDescription,
-      });
+      if (!selectedCategoryId) {
+        if (!newCategoryName || !newCategoryDescription) {
+          toast.error("Please provide a category name and description.");
+          setLoading(false);
+          return;
+        }
+
+        const capitalizedCategory = capitalizeFirstLetter(newCategoryName);
+        const newCat = await createCategory({
+          name: capitalizedCategory,
+          description: newCategoryDescription,
+        });
+        categoryIdToUse = newCat.id;
+      }
 
       const capitalizedTitle = capitalizeFirstLetter(title);
 
@@ -50,29 +108,16 @@ const AddProductModal = ({ isOpen, onClose, onAddProduct }) => {
         stock: Number(stock),
         price: Number(price),
         images: [image],
-        categoryId: newCat.id,
-        sizes: sizes.split(",").map((s) => s.trim()),  
-        colors: colors.split(",").map((c) => c.trim()), 
+        categoryId: categoryIdToUse,
+        sizes: sizes.split(",").map((s) => s.trim()),
+        colors: colors.split(",").map((c) => c.trim()),
       };
-
 
       const newProduct = await createProduct(productData);
       toast.success("Product created!");
 
       onAddProduct(newProduct);
-      onClose();
-      setTitle("");
-      setDescription("");
-      setStock("");
-      setPrice("");
-      setImage("");
-      setNewCategoryName("");
-      setNewCategoryDescription("");
-
-      setSizes("");
-      setColors("");
-
-
+      handleClose(); 
     } catch (err) {
       console.error(err);
       setError("Failed to add product or category.");
@@ -85,53 +130,102 @@ const AddProductModal = ({ isOpen, onClose, onAddProduct }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex justify-center items-center">
-      <div className="absolute inset-0 bg-black opacity-50" onClick={onClose}></div>
+      <div
+        className="absolute inset-0 bg-black opacity-50"
+        onClick={handleClose}
+      ></div>
       <div className="relative bg-white z-50 p-4 md:p-6 rounded-lg w-120 shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold text-black-4">Add Product</h2>
-          <RiCloseLine className="cursor-pointer text-red-2 text-2xl" onClick={onClose} />
+          <RiCloseLine
+            className="cursor-pointer text-red-2 text-2xl"
+            onClick={handleClose}
+          />
         </div>
 
-        <form className="overflow-y-auto h-110 pb-2 pr-2" onSubmit={handleSubmit}>
+        <form
+          className="overflow-y-auto h-110 pb-2 pr-2"
+          onSubmit={handleSubmit}
+        >
           <p className="text-base font-semibold mb-2">Create Category</p>
+
           <input
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
             placeholder="Category Name"
-            className="w-full border p-2 mb-2 rounded"
+            className="w-full border border-gray-2 p-2 mb-4 text-[15px] text-black-1 placeholder:text-black-1 font-normal rounded outline-none focus:border-red-1 placeholder:text-sm"
+            disabled={!!selectedCategoryId}
           />
           <input
             value={newCategoryDescription}
             onChange={(e) => setNewCategoryDescription(e.target.value)}
             placeholder="Category Description"
-            className="w-full border p-2 mb-4 rounded"
+            className="w-full border border-gray-2 p-2 mb-4 text-[15px] text-black-1 placeholder:text-black-1 font-normal rounded outline-none focus:border-red-1 placeholder:text-sm"
+            disabled={!!selectedCategoryId}
           />
 
           <p className="text-base font-semibold mb-2">Create Product</p>
+          <div className="mb-2 relative" ref={dropdownRef}>
+            {/* Custom Dropdown (same position as your previous select) */}
+            <div
+              className="flex justify-between items-center w-full border border-gray-2 p-2 rounded cursor-pointer"
+              onClick={() => setDropdownOpen((prev) => !prev)}
+            >
+              <span className="text-black-1 font-normal text-[15px]">
+                {categories.find((cat) => cat.id === selectedCategoryId)?.name ||
+                  "Choose category"}
+              </span>
+              <RiArrowDownSLine
+                className={`text-xl transform transition-transform duration-300 ${
+                  dropdownOpen ? "rotate-180" : "rotate-0"
+                }`}
+              />
+            </div>
+
+            {dropdownOpen && (
+              <div className="absolute top-full left-0 w-full space-y-1 px-4 py-3 bg-white border border-gray-2 rounded shadow-lg mt-1 z-10 max-h-44 overflow-y-auto">
+                {categories.map((cat) => (
+                  <div
+                    key={cat.id}
+                    onClick={() => {
+                      setSelectedCategoryId(cat.id);
+                      setDropdownOpen(false);
+                    }}
+                    className={`px-3 py-2 group cursor-pointer hover:bg-red-1/80 transition-all duration-300 rounded-lg ${
+                      selectedCategoryId === cat.id ? "bg-red-1/80" : ""
+                    }`}
+                  >
+                   <p className={`group-hover:text-white font-medium ${selectedCategoryId === cat.id ? "text-white" : " text-black-1"}`}>{cat.name}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Title"
-            className="w-full border p-2 mb-2 rounded"
+            placeholder="Product name"
+            className="w-full border border-gray-2 p-2 mb-2 text-black-1 placeholder:text-black-1 rounded outline-none focus:border-red-1 placeholder:text-sm"
           />
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Description"
-            className="w-full border p-2 mb-2 rounded"
+            className="w-full border border-gray-2 p-2 mb-2 text-[15px] text-black-1 placeholder:text-black-1 font-normal rounded outline-none focus:border-red-1 placeholder:text-sm"
           />
           <input
             value={image}
             onChange={(e) => setImage(e.target.value)}
             placeholder="Image URL"
-            className="w-full border p-2 mb-2 rounded"
+            className="w-full border border-gray-2 p-2 mb-2 text-[15px] text-black-1 placeholder:text-black-1 font-normal rounded outline-none focus:border-red-1 placeholder:text-sm"
           />
           <input
             type="number"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             placeholder="Price"
-            className="w-full border p-2 mb-2 rounded"
+            className="w-full border border-gray-2 p-2 mb-2 text-[15px] text-black-1 placeholder:text-black-1 font-normal rounded outline-none focus:border-red-1 placeholder:text-sm"
             min={0}
           />
           <input
@@ -139,31 +233,30 @@ const AddProductModal = ({ isOpen, onClose, onAddProduct }) => {
             value={stock}
             onChange={(e) => setStock(e.target.value)}
             placeholder="Stock"
-            className="w-full border p-2 mb-3 rounded"
+            className="w-full border border-gray-2 p-2 mb-2 text-[15px] text-black-1 placeholder:text-black-1 font-normal rounded outline-none focus:border-red-1 placeholder:text-sm"
             min={0}
           />
 
-            <input
-              value={sizes}
-              onChange={(e) => setSizes(e.target.value)}
-              placeholder="Sizes (comma separated, e.g. S,M,L)"
-              className="w-full border p-2 mb-2 rounded"
-            />
-            <input
-              value={colors}
-              onChange={(e) => setColors(e.target.value)}
-              placeholder="Colors (comma separated, e.g. red,blue,black)"
-              className="w-full border p-2 mb-2 rounded"
-            />
+          <input
+            value={sizes}
+            onChange={(e) => setSizes(e.target.value)}
+            placeholder="Sizes (comma separated, e.g. S,M,L)"
+            className="w-full border border-gray-2 p-2 mb-2 text-[15px] text-black-1 placeholder:text-black-1 font-normal rounded outline-none focus:border-red-1 placeholder:text-sm"
+          />
+          <input
+            value={colors}
+            onChange={(e) => setColors(e.target.value)}
+            placeholder="Colors (comma separated, e.g. red,blue,black)"
+            className="w-full border border-gray-2 p-2 mb-2 text-[15px] text-black-1 placeholder:text-black-1 font-normal rounded outline-none focus:border-red-1 placeholder:text-sm"
+          />
 
-
-          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          {error && <p className="text-red-500 text-sm mt-2 font-normal">{error}</p>}
 
           <div className="flex items-center justify-center gap-3 mt-4">
             <button
               type="button"
               className="cursor-pointer border w-full text-red-2 rounded-3xl py-2"
-              onClick={onClose}
+              onClick={handleClose}
             >
               Cancel
             </button>

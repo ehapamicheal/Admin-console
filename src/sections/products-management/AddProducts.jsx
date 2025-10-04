@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { BiSearch } from "react-icons/bi";
 import { RiDeleteBin5Fill } from "react-icons/ri";
 import { RiEdit2Fill } from "react-icons/ri";
-import AddProductModal from './AddProductModal';
+import AddProductModal from '../../components/AddProductModal';
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { getProducts } from '../api/productApi';
+import { getProducts } from '../../api/productApi';
 import { toast } from "react-toastify";
-import EditModalProduct from './ui/EditModalProduct';
-import { deleteProduct } from "../api/productApi";
-import { deleteCategory } from '../api/categoryApi';
+import EditModalProduct from '../../components/ui/EditModalProduct';
+import { deleteProduct } from "../../api/productApi";
+import { deleteCategory } from '../../api/categoryApi';
 
 const AddProducts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -57,22 +57,35 @@ const AddProducts = () => {
     setProducts(prev => [newProduct, ...prev]);
   };
 
-  const handleDelete = async (id, categoryId) => {
+  // const handleDelete = async (id, categoryId) => {
+  //   try {
+  //     await deleteProduct(id);
+  //     toast.success("Product deleted successfully");
+  
+  //     setProducts(prev => prev.filter(product => product.id !== id));
+  
+  //     if (categoryId) {
+  //       try {
+  //         await deleteCategory(categoryId);
+  //         toast.success("Category deleted");
+  //       } catch (catError) {
+  //         console.error("Failed to delete category:", catError);
+  //         toast.error("Product deleted, but failed to delete category");
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to delete product:", error);
+  //     toast.error("Failed to delete product");
+  //   }
+  // };
+
+   const handleDelete = async (id) => {
     try {
       await deleteProduct(id);
       toast.success("Product deleted successfully");
   
       setProducts(prev => prev.filter(product => product.id !== id));
   
-      if (categoryId) {
-        try {
-          await deleteCategory(categoryId);
-          toast.success("Category deleted");
-        } catch (catError) {
-          console.error("Failed to delete category:", catError);
-          toast.error("Product deleted, but failed to delete category");
-        }
-      }
     } catch (error) {
       console.error("Failed to delete product:", error);
       toast.error("Failed to delete product");
@@ -150,9 +163,14 @@ const AddProducts = () => {
                       />
 
 
-                      <RiDeleteBin5Fill
+                      {/* <RiDeleteBin5Fill
                         className="text-red-1 cursor-pointer"
                         onClick={() => handleDelete(product.id, product.category?.id)}
+                      /> */}
+
+                      <RiDeleteBin5Fill
+                        className="text-red-1 cursor-pointer"
+                        onClick={() => handleDelete(product.id)}
                       />
                     </div>
                   </td>
