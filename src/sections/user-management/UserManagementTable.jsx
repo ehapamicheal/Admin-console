@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { BiSearch } from "react-icons/bi";
-import AddUserModal from "../../components/ui/AddUserModal";
+// import AddUserModal from "../../components/ui/AddUserModal";
 import { BiChevronDown } from "react-icons/bi";
 import { toast } from "react-toastify";
 import PaginationButton from "../../components/PaginationButton";
@@ -12,7 +12,7 @@ import FulfilmentAgentModal from "../../components/ui/FulfilmentAgentModal";
 
 
 const UserManagementTable = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+//   const [isModalOpen, setIsModalOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -101,95 +101,96 @@ const UserManagementTable = () => {
     };
 
     const handleExportCSV = async () => {
-    if (exporting) return;
-    try {
-        setExporting(true);
+        if (exporting) return;
+        
+        try {
+            setExporting(true);
 
-        // Fetch first page to learn totalPages
-        const firstPage = await getAllUsers({ page: 1, limit: 10 });
-        const totalPages = firstPage.pagination?.totalPages || 1;
-        let allUsers = firstPage.users || [];
+            // Fetch first page to learn totalPages
+            const firstPage = await getAllUsers({ page: 1, limit: 10 });
+            const totalPages = firstPage.pagination?.totalPages || 1;
+            let allUsers = firstPage.users || [];
 
-        // Fetch remaining pages (2..totalPages)
-        for (let p = 2; p <= totalPages; p++) {
-        const res = await getAllUsers({ page: p, limit: 10 });
-        allUsers = allUsers.concat(res.users || []);
+            // Fetch remaining pages (2..totalPages)
+            for (let p = 2; p <= totalPages; p++) {
+            const res = await getAllUsers({ page: p, limit: 10 });
+            allUsers = allUsers.concat(res.users || []);
+            }
+
+            if (!allUsers.length) {
+            toast.info("No users to export");
+            return;
+            }
+
+            // CSV headers (added Total Spent and Total Orders)
+            const headers = [
+            "Created Date",
+            "First Name",
+            "Last Name",
+            "Email",
+            "Phone Number",
+            "Address",
+            "State",
+            "City",
+            "University Name",
+            "Roles",
+            "Total Spent",
+            "Total Orders",
+            ];
+
+            // Build rows
+            const rows = allUsers.map((u) => {
+            const created = u.createdAt ? new Date(u.createdAt).toISOString().split("T")[0] : "";
+            const rolesStr = (u.roles || []).map((r) => r.replace(/_/g, " ")).join(", ");
+            const totalSpent =
+                u.totalSpent === null || u.totalSpent === undefined
+                ? ""
+                : Number(u.totalSpent).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const totalOrders = u.totalOrders === null || u.totalOrders === undefined ? "" : String(u.totalOrders);
+
+            return [
+                created,
+                u.firstName || "",
+                u.lastName || "",
+                u.email || "",
+                u.phoneNumber || "",
+                u.address || "",
+                u.state || "",
+                u.city || "",
+                u.universityName || "",
+                rolesStr,
+                totalSpent,
+                totalOrders,
+            ];
+            });
+
+            // Properly escape quotes and add UTF-8 BOM for Excel compatibility
+            const csvContent = [
+            headers.join(","),
+            ...rows.map((row) =>
+                row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+            ),
+            ].join("\n");
+
+            const csvWithBom = "\uFEFF" + csvContent;
+            const blob = new Blob([csvWithBom], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `users_${new Date().toISOString().split("T")[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            toast.success(`Exported ${allUsers.length} users`);
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to export users");
+        } finally {
+            setExporting(false);
         }
-
-        if (!allUsers.length) {
-        toast.info("No users to export");
-        return;
-        }
-
-        // CSV headers (added Total Spent and Total Orders)
-        const headers = [
-        "Created Date",
-        "First Name",
-        "Last Name",
-        "Email",
-        "Phone Number",
-        "Address",
-        "State",
-        "City",
-        "University Name",
-        "Roles",
-        "Total Spent",
-        "Total Orders",
-        ];
-
-        // Build rows
-        const rows = allUsers.map((u) => {
-        const created = u.createdAt ? new Date(u.createdAt).toISOString().split("T")[0] : "";
-        const rolesStr = (u.roles || []).map((r) => r.replace(/_/g, " ")).join(", ");
-        const totalSpent =
-            u.totalSpent === null || u.totalSpent === undefined
-            ? ""
-            : Number(u.totalSpent).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const totalOrders = u.totalOrders === null || u.totalOrders === undefined ? "" : String(u.totalOrders);
-
-        return [
-            created,
-            u.firstName || "",
-            u.lastName || "",
-            u.email || "",
-            u.phoneNumber || "",
-            u.address || "",
-            u.state || "",
-            u.city || "",
-            u.universityName || "",
-            rolesStr,
-            totalSpent,
-            totalOrders,
-        ];
-        });
-
-        // Properly escape quotes and add UTF-8 BOM for Excel compatibility
-        const csvContent = [
-        headers.join(","),
-        ...rows.map((row) =>
-            row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
-        ),
-        ].join("\n");
-
-        const csvWithBom = "\uFEFF" + csvContent;
-        const blob = new Blob([csvWithBom], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `users_${new Date().toISOString().split("T")[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-
-        toast.success(`Exported ${allUsers.length} users`);
-    } catch (err) {
-        console.error(err);
-        toast.error("Failed to export users");
-    } finally {
-        setExporting(false);
-    }
     };
 
 
@@ -210,7 +211,7 @@ const UserManagementTable = () => {
             </div>
 
             {/*========== ADDE USER BUTTON ==========*/}
-            <div className="text-right mt-4 md:mt-0">
+            {/* <div className="text-right mt-4 md:mt-0">
                 <button
                     onClick={() => setIsModalOpen(true)}
                     type="button"
@@ -218,7 +219,7 @@ const UserManagementTable = () => {
                 >
                     Add User
                 </button>
-            </div>
+            </div> */}
         </div>
 
         {/*========== FILTER ROLE DROPDOWN ==========*/}
@@ -273,10 +274,8 @@ const UserManagementTable = () => {
 
         </div>
 
-
-        {/* Users Table */}
         {/*========== USERS TABLE ==========*/}
-        <div className="mt-8 bg-white rounded-lg shadow-md w-full">
+        <div className="mt-8 bg-white rounded-lg shadow-md w-full overflow-hidden">
             <div className="overflow-x-auto relative">
                 <table className="w-full border-collapse">
                     <thead>
@@ -297,21 +296,24 @@ const UserManagementTable = () => {
                             users.map((user, index) => (
                             <tr key={user.id} className="border-b border-gray-2">
                                 <td className="pl-4 py-2 whitespace-nowrap tbody_tr_td">
-                                {(currentPage - 1) * 10 + index + 1}
+                                    {(currentPage - 1) * 10 + index + 1}
                                 </td>
-                                <td className="py-2 text-center whitespace-nowrap tbody_tr_td">
-                                {user.firstName} {user.lastName}
+
+                                <td className="py-2 text-center whitespace-nowrap tbody_tr_td user-td3">
+                                  {user.firstName} {user.lastName}
                                 </td>
+
                                 <td className="py-2 text-center whitespace-nowrap relative group">
                                 <div className="max-w-[120px] mx-auto">
                                     <p className="truncate tbody_tr_td">{user.email}</p>
                                 </div>
                                 </td>
-                                <td className="py-2 text-center whitespace-nowrap tbody_tr_td">
-                                {user.phoneNumber ? `0${user.phoneNumber}` : ""}
+
+                                <td className="py-2 text-center whitespace-nowrap tbody_tr_td user-td4">
+                                  {user.phoneNumber ? `0${user.phoneNumber}` : ""}
                                 </td>
 
-                                <td className="py-2 text-center whitespace-nowrap tbody_tr_td">
+                                <td className="py-2 text-center whitespace-nowrap tbody_tr_td user-td4">
                                     {user.totalSpent === 0
                                         ? ""
                                         : `₦${Number(user.totalSpent).toLocaleString("en-NG", {
@@ -319,68 +321,74 @@ const UserManagementTable = () => {
                                             maximumFractionDigits: 2,
                                     })}`}
                                 </td>
-                                <td className="py-2 text-center whitespace-nowrap tbody_tr_td">
-                                <div className="flex flex-col gap-y-1">
-                                    {user.roles.map((r, i) => (
-                                    <p key={i}>{r.replace("_", " ")}</p>
-                                    ))}
-                                </div>
+
+                                <td className="py-2 text-center whitespace-nowrap tbody_tr_td user-td2">
+                                    <div className="flex flex-col gap-y-1">
+                                        {user.roles.map((r, i) => (
+                                            <p key={i}>
+                                                {r.replace("_", " ").charAt(0).toUpperCase() + r.replace("_", " ").slice(1)}
+                                            </p>
+                                        ))}
+                                    </div>
                                 </td>
-                                <td className="py-2 text-center whitespace-nowrap tbody_tr_td">
+
+                                <td className="py-2 text-center whitespace-nowrap tbody_tr_td user-td3">
                                 {formatDate(user.createdAt)}
                                 </td>
 
-                                <td className="relative py-2 text-center">
-                                <div className="relative inline-block text-left options-dropdown">
-                                    <button
-                                    type="button"
-                                    aria-label="Options"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setOpenOptionsId((prev) => (prev === user.id ? null : user.id));
-                                    }}
-                                    className="p-1 rounded-md cursor-pointer hover:bg-gray-100 transition duration-300"
-                                    >
-                                    <SlOptions className="text-gray-700" />
-                                    </button>
-
-                                    {openOptionsId === user.id && (
-                                    <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-50">
+                                <td className="relative py-2 text-center user-td1">
+                                    <div className="relative inline-block text-left options-dropdown">
                                         <button
-                                        onClick={() => {
-                                            setUserDetails(user.id); 
-                                            setOpenOptionsId(null); 
+                                        type="button"
+                                        aria-label="Options"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setOpenOptionsId((prev) => (prev === user.id ? null : user.id));
                                         }}
-                                        className="block w-full text-center px-4 py-2 cursor-pointer text-sm hover:bg-gray-100 transition duration-300"
+                                        className="p-1 rounded-md cursor-pointer hover:bg-gray-100 transition duration-300"
                                         >
-                                        View Details
+                                        <SlOptions className="text-gray-700" />
                                         </button>
 
-                                        <div className="text-center">
-                                            {currentUser?.roles?.includes("admin") && (
+                                        {openOptionsId === user.id && (
+                                        <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-50">
                                             <button
-                                                onClick={() => {
-                                                setAssignUser(user); 
+                                            onClick={() => {
+                                                setUserDetails(user.id); 
                                                 setOpenOptionsId(null); 
-                                                }}
-                                                className="block w-full cursor-pointer text-center text-black-1 px-4 py-2 text-sm hover:bg-gray-100 transition duration-300"
+                                            }}
+                                            className="block w-full text-center px-4 py-2 cursor-pointer text-sm hover:bg-gray-100 transition duration-300"
                                             >
-                                                Assign Roles
+                                            View Details
                                             </button>
-                                            )}
 
-                                            <button 
-                                                onClick={() => 
-                                                  {setUserAgent(user);
-                                                    setOpenOptionsId(null)
-                                                  }
-                                                } 
-                                                className="block w-full cursor-pointer text-center text-black-1 px-4 py-2 text-sm hover:bg-gray-100 transition duration-300" type="button">Create Agent</button>
+                                            <div className="text-center">
+                                                {currentUser?.roles?.includes("admin") && (
+                                                    <>
+
+                                                        <button
+                                                            onClick={() => {
+                                                            setAssignUser(user); 
+                                                            setOpenOptionsId(null); 
+                                                            }}
+                                                            className="block w-full cursor-pointer text-center text-black-1 px-4 py-2 text-sm hover:bg-gray-100 transition duration-300"
+                                                        >
+                                                            Assign Roles
+                                                        </button>
+                                                            
+                                                        <button onClick={() => 
+                                                            {setUserAgent(user);
+                                                            setOpenOptionsId(null)}} 
+                                                        className="block w-full cursor-pointer text-center text-black-1 px-4 py-2 text-sm hover:bg-gray-100 transition duration-300" type="button">Create Agent</button>
+                                                    </>
+                                                    
+                                                )}
+                                    
+                                            </div>
+
                                         </div>
-
+                                        )}
                                     </div>
-                                    )}
-                                </div>
                                 </td>
 
 
@@ -388,11 +396,11 @@ const UserManagementTable = () => {
                             ))
                         ) : (
                             <tr>
-                            <td colSpan="8" className="text-center py-6">
-                                <p className="text-gray-500 font-normal text-base md:text-lg">
-                                {debouncedSearchTerm ? "No users match your search." : "No users available."}
-                                </p>
-                            </td>
+                                <td colSpan="8" className="text-center py-6">
+                                    <p className="text-gray-500 font-normal text-base md:text-lg">
+                                    {debouncedSearchTerm ? "No users match your search." : "No users available."}
+                                    </p>
+                                </td>
                             </tr>
                         )}
                     </tbody>
@@ -408,13 +416,13 @@ const UserManagementTable = () => {
         </div>
 
         {/*========== ADD USERS MODAL ==========*/}
-        <AddUserModal
+        {/* <AddUserModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             handleAddUser={() => {
             fetchUsers(1, "");
             }}
-        />
+        /> */}
 
         {/*========== USERS DETAILS MODAL ==========*/}
         <UserDetailsModal

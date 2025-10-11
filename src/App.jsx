@@ -3,13 +3,13 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import SideBar from "./components/SideBar";
 import Header from "./components/Header";
 import Home from './pages/home/Home';
-import ProductsManagement from './pages/products-management/ProductsManagement';
+import ProductManagement from './pages/product-management/ProductManagement';
 import Login from "./pages/auth/login/Login";
 import Preloader from "./components/Preloader"; 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import UsersManagement from "./pages/users-management/UsersManagement";
-import FulfilmentsCentreManagement from "./pages/fulfilments-centre-management/FulfilmentsCentreManagement";
+import UserManagement from "./pages/user-management/UserManagement";
+import FulfilmentCentre from "./pages/fulfilment-centre/FulfilmentCentre";
 import ScrollToTop from "./components/ScrollToTop";
 
 
@@ -46,9 +46,9 @@ const App = () => {
                 <Header setIsOpen={setIsOpen} setIsLoggedIn={setIsLoggedIn} />
                 <Routes>
                   <Route path="/" element={<Home />} />
-                  <Route path="/products-management" element={<ProductsManagement />} />
-                  <Route path="/users-management" element={<UsersManagement />} />
-                  <Route path="/fulfilments-centre-management" element={<FulfilmentsCentreManagement />} />
+                  <Route path="/product-management" element={<ProductManagement />} />
+                  <Route path="/user-management" element={<UserManagement />} />
+                  <Route path="/fulfilment-centre" element={<FulfilmentCentre />} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
               </div>

@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { getFulfilments, updateFulfilmentStatus } from "../../api/fulfilmentApi";
 import { RiEdit2Fill } from "react-icons/ri";
 import LocationHistoryModal from "../../components/ui/LocationHistoryModal";
+import FulfilmentOrderModal from "../../components/ui/FulfilmentOrderModal";
 import { toast } from "react-toastify";
 import PaginationButton from "../../components/PaginationButton";
 import { MdArrowDropDown } from "react-icons/md";
 import { fulfilledStatus } from "../../Data";
+import { BiSolidShow } from "react-icons/bi";
 
-
-const FulfilmentsCentreManagement = () => {
+const FulfilmentCentre = () => {
   const [fulfilments, setFulfilments] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [openDropdownId, setOpenDropdownId] = useState(null);
@@ -16,13 +17,14 @@ const FulfilmentsCentreManagement = () => {
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
 
+  // 🆕 Modal states for fulfilment details
+  const [fulfilmentModalOpen, setFulfilmentModalOpen] = useState(false);
+  const [selectedFulfilment, setSelectedFulfilment] = useState(null);
+
   const fulfilementPerPage = 10;
   const indexOfLastOrder = currentPage * fulfilementPerPage;
   const indexOfFirstOrder = indexOfLastOrder - fulfilementPerPage;
-  const currentFulfilements = fulfilments.slice(
-    indexOfFirstOrder,
-    indexOfLastOrder
-  );
+  const currentFulfilements = fulfilments.slice(indexOfFirstOrder, indexOfLastOrder);
   const totalPages = Math.ceil(fulfilments.length / fulfilementPerPage);
 
   useEffect(() => {
@@ -113,6 +115,18 @@ const FulfilmentsCentreManagement = () => {
     }
   };
 
+  // 🆕 Handle view details (eye click)
+  const handleViewDetails = (fulfilmentId) => {
+    const selected = fulfilments.find((f) => f.id === fulfilmentId);
+    setSelectedFulfilment(selected);
+    setFulfilmentModalOpen(true);
+  };
+
+  const closeFulfilmentModal = () => {
+    setSelectedFulfilment(null);
+    setFulfilmentModalOpen(false);
+  };
+
   return (
     <div className="mx-2 md:mx-4 mt-10 pt-12 pb-6">
       <div className="mt-8 bg-white rounded-lg shadow-md w-full">
@@ -173,9 +187,9 @@ const FulfilmentsCentreManagement = () => {
                           className={`capitalize
                             ${fulfilment.status === "shipped" ? "text-yellow-500" : ""}
                             ${fulfilment.status === "delivered" ? "text-green-2" : ""}
-                            ${fulfilment.status === "completed" ? "text-blue-500" : ""}
+                            ${fulfilment.status === "completed" ? "text-emerald-600" : ""}
                             ${fulfilment.status === "returned" ? "text-red-2" : ""}
-                            ${fulfilment.status === "cancelled" ? "text-gray-500" : ""}
+                            ${fulfilment.status === "cancelled" ? "text-red-600" : ""}
                           `}
                         >
                           {fulfilment.status.replace("_", " ")}
@@ -198,7 +212,7 @@ const FulfilmentsCentreManagement = () => {
                             <li
                               key={status}
                               onClick={() => handleStatusSelect(fulfilment.id, status)}
-                               className="px-3 py-2 hover:bg-red-2/80 rounded-lg transition-all duration-300 hover:text-white cursor-pointer capitalize text-sm"
+                              className="px-3 py-2 hover:bg-red-2/80 rounded-lg transition-all duration-300 hover:text-white cursor-pointer capitalize text-sm"
                             >
                               {status}
                             </li>
@@ -211,6 +225,14 @@ const FulfilmentsCentreManagement = () => {
                   {/* Actions */}
                   <td className="flex items-center justify-center py-2 text-center whitespace-nowrap responsive-td1">
                     <div className="flex items-center justify-center gap-1">
+                      <button
+                        className="cursor-pointer"
+                        type="button"
+                        onClick={() => handleViewDetails(fulfilment.id)}
+                      >
+                        <BiSolidShow className="text-gray-600" />
+                      </button>
+
                       <RiEdit2Fill
                         className="text-green-2 cursor-pointer"
                         onClick={() => openLocationModal(fulfilment.id)}
@@ -230,13 +252,21 @@ const FulfilmentsCentreManagement = () => {
         </div>
       </div>
 
+      {/* Location History Modal */}
       {locationModalOpen && (
         <LocationHistoryModal orderId={selectedOrderId} onClose={closeLocationModal} />
+      )}
+
+      {/* 🆕 Fulfilment Details Modal */}
+      {fulfilmentModalOpen && (
+        <FulfilmentOrderModal
+          isOpen={fulfilmentModalOpen}
+          onClose={closeFulfilmentModal}
+          fulfilment={selectedFulfilment}
+        />
       )}
     </div>
   );
 };
 
-export default FulfilmentsCentreManagement;
-
-
+export default FulfilmentCentre;
