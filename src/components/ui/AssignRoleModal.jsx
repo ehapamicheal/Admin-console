@@ -25,6 +25,7 @@ const roles = [
   { label: "Admin", value: "admin" },
   { label: "Sponsor", value: "sponsor" },
 ];
+
 const AssignRoleModal = ({ isOpen, onClose, user, onSuccess }) => {
   const [selectedRole, setSelectedRole] = useState("");
   const [loading, setLoading] = useState(false);

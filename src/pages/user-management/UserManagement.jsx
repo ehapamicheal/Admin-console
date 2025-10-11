@@ -1,4 +1,4 @@
-import { UserManagementTable } from "../../sections/users-management";
+import { UserManagementTable } from "../../sections/user-management";
 
 
 const UsersManagement = () => {

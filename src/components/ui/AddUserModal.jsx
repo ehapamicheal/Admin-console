@@ -265,7 +265,7 @@ const AddUserModal = ({ isOpen, onClose, handleAddUser }) => {
             {/* Roles */}
             <div className="md:col-span-2 relative" ref={dropdownRef}>
               <label className="text-black-1 font-medium text-base block mb-2">
-                Roles <span className="text-red-500">*</span>
+                Roles
               </label>
               <div
                 className="w-full border border-gray-2 p-2 rounded cursor-pointer flex items-center justify-between"

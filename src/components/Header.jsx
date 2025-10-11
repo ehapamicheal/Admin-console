@@ -5,9 +5,9 @@ import Avatar from "../assets/images/avatar.png";
 
 const pageTitles = {
   "/": "Dashboard",
-  "/products-management": "Products Management",
-  "/users-management": "Users Management",
-  "/fulfilments-centre-management": "Fulfilments Centre Management",
+  "/product-management": "Product Management",
+  "/user-management": "User Management",
+  "/fulfilment-centre": "Fulfilment Centre",
 };
 
 const Header = ({ setIsOpen, setIsLoggedIn }) => {

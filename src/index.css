@@ -91,7 +91,6 @@ body {
     letter-spacing: 0%;
 }
 
-
 .table_th {
     font-weight: 500;
     font-size: 16px;
@@ -121,7 +120,6 @@ body {
 
 
 /*============== MEDIA STYLES GOES HERE ============== */
-
 @media (max-width: 1022px) {
     .right_section {
         margin-left: 0;
@@ -147,14 +145,30 @@ body {
 
     .nav_container .close_box {
         display: flex;
-        align-items: end;
-        justify-content: end;
     }
 
     .header_menu .menu_box {
         display: block;
     }
 
+}
+
+@media (max-width: 768px) {
+    .user-td1 {
+        min-width: 100px;
+    }
+
+    .user-td2 {
+        min-width: 120px;
+    }
+
+    .user-td3 {
+        min-width: 150px;
+    }
+
+    .user-td4 {
+        min-width: 140px;
+    }
 }
 
 @media (max-width: 660px) {
@@ -193,10 +207,8 @@ body {
     }
 }
 
-
 @media (max-width: 426px) {
     .tbody_tr_td {
         font-size: 13px;
-    }
-    
+    } 
 }

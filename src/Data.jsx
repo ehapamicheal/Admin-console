@@ -12,25 +12,26 @@ export const sidebarLinks = [
         icon: <RxDashboard />
     },
     { id: 2, 
-        name: "Products Management", 
-        path: "/products-management", 
+        name: "Product Management", 
+        path: "/product-management", 
         icon: <CiShop />
     },
     { id: 3, 
-        name: "Users Management", 
-        path: "/users-management", 
+        name: "User Management", 
+        path: "/user-management", 
         icon: <HiMiniUser />
     },
     { id: 4, 
-        name: "Fulfilments Centre Management", 
-        path: "/fulfilments-centre-management",
+        name: "Fulfilment Centre", 
+        path: "/fulfilment-centre",
         icon: <FaClipboardList /> 
     }
 ];
 
+// ROLES
 export const roles = ["admin", "sponsor"];
 
-
+// FULFILMENT STATUS
 export const fulfilledStatus = ["shipped", "delivered", "completed", "returned", "cancelled"];
 
   
