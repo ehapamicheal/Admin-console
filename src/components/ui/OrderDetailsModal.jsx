@@ -17,15 +17,17 @@ const OrderDetailsModal = ({ order, onClose }) => {
       <div className="absolute inset-0 bg-black opacity-50" onClick={onClose}></div>
       
       <div className="relative bg-white shadow-md rounded-md py-6 space-y-4 max-w-2xl w-full">
-        <div className="flex justify-between items-center mb-4 px-4">
+        <div className="flex justify-between items-center mb-6 px-4">
           <h2 className="text-base md:text-lg font-bold text-black-4">Order Details</h2>
-          <RiCloseLine className="cursor-pointer text-red-2 text-2xl" onClick={onClose} />
+          <button type="button" className="cursor-pointer group" onClick={onClose} aria-label="Close modal">
+            <RiCloseLine className="transition group-hover:rotate-90 duration-500 text-red-2 text-2xl" />
+          </button>
         </div>
 
         <div className="flex flex-col gap-y-5 pb-3 overflow-y-auto max-h-[80vh]">
 
-          <div className="flex justify-between border-b border-b-gray-2 pb-2 px-4">
-            <h3 className="text-base font-bold text-black-1">OrderId</h3>
+          <div className="flex justify-between border-b border-b-gray-2 pb-2 px-4 gap-2">
+            <h3 className="text-base font-bold text-black-1">OrderId:</h3>
             <p className="text-sm md:text-base font-medium text-grey-1">{order.id}</p>
           </div>
 
@@ -69,8 +71,18 @@ const OrderDetailsModal = ({ order, onClose }) => {
           </div>
 
           <div className="flex justify-between border-b border-b-gray-2 pb-2 px-4">
+            <h3 className="text-xs md:text-base font-bold text-black-1">City</h3>
+            <p className="text-xs md:text-base font-medium text-grey-1">{order.deliveryCity}</p>
+          </div>
+
+          <div className="flex justify-between border-b border-b-gray-2 pb-2 px-4">
+            <h3 className="text-xs md:text-base font-bold text-black-1">State</h3>
+            <p className="text-xs md:text-base font-medium text-grey-1">{order.deliveryState}</p>
+          </div>
+
+          <div className="flex justify-between border-b border-b-gray-2 pb-2 px-4">
             <h3 className="text-xs md:text-base font-bold text-black-1">Delivery Note</h3>
-            <p className="text-xs md:text-base font-medium text-grey-1">{order.deliveryNote || 'None'}</p>
+            <p className="text-xs md:text-base font-medium text-grey-1">{order.deliveryNote || '_'}</p>
           </div>
 
           <div className="flex justify-between border-b border-b-gray-2 pb-2 px-4">

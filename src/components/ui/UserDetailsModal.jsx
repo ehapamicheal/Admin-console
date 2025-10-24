@@ -88,7 +88,7 @@ const UserDetailsModal = ({ isOpen, onClose, userId, onUserUpdated }) => {
                     <div className="flex items-center justify-between p-6 border-b border-red-2/20">
                     <h3 className="text-xl md:text-2xl font-bold text-black-1">User Details</h3>
 
-                    <button onClick={onClose} type="button" className="cursor-pointer group" aria-label="close modal">
+                        <button onClick={onClose} type="button" className="cursor-pointer group" aria-label="close modal">
                             <RiCloseLine
                                 className="text-red-2 text-2xl transition group-hover:rotate-90 duration-500"
                             />

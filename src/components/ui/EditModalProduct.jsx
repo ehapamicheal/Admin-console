@@ -4,16 +4,20 @@ import { toast } from "react-toastify";
 import { updateProduct } from "../../api/productApi";
 import { updateCategory, getCategories } from "../../api/categoryApi";
 
+
 const EditModalProduct = ({ product, onClose, onProductUpdated }) => {
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editStock, setEditStock] = useState("");
-  const [editPrice, setEditPrice] = useState("");
-  const [editImage, setEditImage] = useState("");
-  const [editSizes, setEditSizes] = useState("");
-  const [editColors, setEditColors] = useState("");
-  const [editCategoryName, setEditCategoryName] = useState("");
-  const [editCategoryDescription, setEditCategoryDescription] = useState("");
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    stock: "",
+    price: "",
+    image: "",
+    sizes: "",
+    colors: "",
+    categoryName: "",
+    categoryDescription: "",
+  });
+
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -22,21 +26,23 @@ const EditModalProduct = ({ product, onClose, onProductUpdated }) => {
 
   const dropdownRef = useRef(null);
 
+  // Populate fields when editing
   useEffect(() => {
     if (product) {
-      setEditTitle(product.title || "");
-      setEditDescription(product.description || "");
-      setEditStock(product.stock !== undefined ? product.stock : "");
-      setEditPrice(
-        product.price !== undefined
-          ? product.price.toString().replace("₦", "").replace(",", "")
-          : ""
-      );
-      setEditImage(product.images?.[0] || "");
-      setEditSizes(product.sizes?.join(", ") || "");
-      setEditColors(product.colors?.join(", ") || "");
-      setEditCategoryName(product.category?.name || "");
-      setEditCategoryDescription(product.category?.description || "");
+      setFormData({
+        title: product.title || "",
+        description: product.description || "",
+        stock: product.stock ?? "",
+        price:
+          product.price !== undefined
+            ? product.price.toString().replace("₦", "").replace(",", "")
+            : "",
+        image: product.images?.[0] || "",
+        sizes: product.sizes?.join(", ") || "",
+        colors: product.colors?.join(", ") || "",
+        categoryName: product.category?.name || "",
+        categoryDescription: product.category?.description || "",
+      });
       setSelectedCategoryId(product.category?.id || "");
     }
   }, [product]);
@@ -53,7 +59,7 @@ const EditModalProduct = ({ product, onClose, onProductUpdated }) => {
     fetchCategories();
   }, []);
 
-  // close dropdown on click outside
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -64,6 +70,11 @@ const EditModalProduct = ({ product, onClose, onProductUpdated }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const capitalizeFirstLetter = (string) =>
     string ? string.charAt(0).toUpperCase() + string.slice(1) : "";
 
@@ -72,33 +83,34 @@ const EditModalProduct = ({ product, onClose, onProductUpdated }) => {
     setLoading(true);
     setError("");
 
-    if (!editTitle || !editPrice || !selectedCategoryId) {
+    const { title, description, stock, price, image, sizes, colors, categoryName, categoryDescription } = formData;
+
+    if (!title || !price || !selectedCategoryId) {
       toast.error("Please fill in all required fields.");
       setLoading(false);
       return;
     }
 
     try {
-      const capitalizedTitle = capitalizeFirstLetter(editTitle);
+      const capitalizedTitle = capitalizeFirstLetter(title);
 
-      // Update category only if editing the same one
       if (selectedCategoryId === product.category.id) {
-        const capitalizedCategoryName = capitalizeFirstLetter(editCategoryName);
+        const capitalizedCategoryName = capitalizeFirstLetter(categoryName);
         await updateCategory(product.category.id, {
           name: capitalizedCategoryName,
-          description: editCategoryDescription,
+          description: categoryDescription,
         });
       }
 
       const updatedData = {
         title: capitalizedTitle,
-        description: editDescription,
-        stock: Number(editStock),
-        price: Number(editPrice),
-        images: [editImage],
+        description,
+        stock: Number(stock),
+        price: Number(price),
+        images: [image],
         categoryId: selectedCategoryId,
-        sizes: editSizes ? editSizes.split(",").map((s) => s.trim()) : [],
-        colors: editColors ? editColors.split(",").map((c) => c.trim()) : [],
+        sizes: sizes ? sizes.split(",").map((s) => s.trim()) : [],
+        colors: colors ? colors.split(",").map((c) => c.trim()) : [],
       };
 
       await updateProduct(product.id, updatedData);
@@ -123,70 +135,60 @@ const EditModalProduct = ({ product, onClose, onProductUpdated }) => {
       <div className="relative bg-white z-50 p-4 md:p-6 rounded-lg w-120 shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold text-black-4">Edit Product</h2>
-          <RiCloseLine
-            className="cursor-pointer text-red-2 text-2xl"
-            onClick={onClose}
-          />
+          <button type="button" className="cursor-pointer group" onClick={onClose}>
+            <RiCloseLine className="transition group-hover:rotate-90 duration-500 text-red-2 text-2xl" />
+          </button>
         </div>
 
         <form className="overflow-y-auto h-110 pb-2 pr-2" onSubmit={handleUpdate}>
-          {/*============ CATEGORY INFO =============*/}
+          {/* Category Info */}
           <div className="mb-5">
             <h3 className="text-base font-semibold mb-4">Category Info</h3>
-
-
             {selectedCategoryId === product.category?.id && (
-              <>
-                <div className="space-y-4">
-                  <div className="flex flex-col gap-2">
-                    <label className="text-black-1 font-medium text-sm block" htmlFor="name">Category Name</label>
-
-                    <input
-                      value={editCategoryName}
-                      onChange={(e) => setEditCategoryName(e.target.value)}
-                      className="w-full border border-gray-2 p-2 text-[15px] text-black-1 font-normal rounded outline-none focus:border-red-1"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-black-1 font-medium text-sm block" htmlFor="description">Category Description</label>
-
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-black-1 font-medium text-sm">Category Name</label>
                   <input
-                    value={editCategoryDescription}
-                    onChange={(e) => setEditCategoryDescription(e.target.value)}
-                    className="w-full border border-gray-2 p-2 text-[15px] text-black-1 font-normal rounded outline-none focus:border-red-1"
+                    name="categoryName"
+                    value={formData.categoryName}
+                    onChange={handleChange}
+                    className="w-full border border-gray-2 p-2 text-[15px] text-black-1 rounded outline-none focus:border-red-1"
                   />
-                  </div>
                 </div>
-              </>
+                <div className="flex flex-col gap-2">
+                  <label className="text-black-1 font-medium text-sm">Category Description</label>
+                  <input
+                    name="categoryDescription"
+                    value={formData.categoryDescription}
+                    onChange={handleChange}
+                    className="w-full border border-gray-2 p-2 text-[15px] text-black-1 rounded outline-none focus:border-red-1"
+                  />
+                </div>
+              </div>
             )}
           </div>
 
-          {/*============ PRODUCT INFO =============*/}
-          <div className="">
+          {/* Product Info */}
+          <div>
             <p className="text-base font-semibold mb-4">Product Info</p>
-
             <div className="space-y-4">
-              {/*============  =============*/}
-               <div className="relative" ref={dropdownRef}>
+              {/* Category dropdown */}
+              <div className="relative" ref={dropdownRef}>
                 <p className="text-black-1 font-medium text-sm mb-2">Select Category</p>
                 <div
                   className="flex justify-between items-center w-full border border-gray-2 p-2 rounded cursor-pointer"
                   onClick={() => setDropdownOpen((prev) => !prev)}
                 >
-                  <span className="text-black-1 font-normal text-[15px]">
-                    {categories.find((cat) => cat.id === selectedCategoryId)?.name ||
-                      "Select Category"}
+                  <span className="text-black-1 text-[15px]">
+                    {categories.find((cat) => cat.id === selectedCategoryId)?.name || "Select Category"}
                   </span>
                   <RiArrowDownSLine
-                    className={`text-xl transform transition-transform duration-300 ${
-                      dropdownOpen ? "rotate-180" : "rotate-0"
-                    }`}
+                    className={`text-xl transform transition-transform duration-300 ${dropdownOpen ? "rotate-180" : "rotate-0"}`}
                   />
                 </div>
 
                 {dropdownOpen && (
-                  <div className="absolute top-full left-0 w-full space-y-1 bg-gray-100 border border-gray-2 px-4 py-3 rounded shadow-lg mt-1 z-10 max-h-44 overflow-y-auto">
+                  <div className="absolute top-full left-0 w-full bg-gray-100 border border-gray-2 px-4 py-3 rounded shadow-lg mt-1 z-10 max-h-44 overflow-y-auto">
                     {categories.map((cat) => (
                       <div
                         key={cat.id}
@@ -194,116 +196,86 @@ const EditModalProduct = ({ product, onClose, onProductUpdated }) => {
                           setSelectedCategoryId(cat.id);
                           setDropdownOpen(false);
                         }}
-                        className={`px-3 py-2 group cursor-pointer hover:bg-red-1/80 transition-all duration-300 rounded-lg ${
+                        className={`px-3 py-2 group cursor-pointer hover:bg-red-1/80 rounded-lg ${
                           selectedCategoryId === cat.id ? "bg-red-1/80" : ""
                         }`}
                       >
-                        <p className={`group-hover:text-white font-medium ${selectedCategoryId === cat.id ? "text-white" : " text-black-1"}`}>{cat.name}</p>
+                        <p
+                          className={`group-hover:text-white font-medium ${
+                            selectedCategoryId === cat.id ? "text-white" : "text-black-1"
+                          }`}
+                        >
+                          {cat.name}
+                        </p>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/*============ PRODUCT NAME =============*/}
+              {/* Product fields */}
+              {[
+                { label: "Product Name", name: "title" },
+                { label: "Description", name: "description" },
+                { label: "Image URL", name: "image" },
+                { label: "Sizes (comma separated, e.g. S,M,L)", name: "sizes" },
+                { label: "Colors (comma separated, e.g. red,blue,black)", name: "colors" },
+              ].map(({ label, name }) => (
+                <div key={name} className="flex flex-col gap-2">
+                  <label className="text-black-1 font-medium text-sm">{label}</label>
+                  <input
+                    name={name}
+                    value={formData[name]}
+                    onChange={handleChange}
+                    className="w-full border border-gray-2 p-2 text-[15px] text-black-1 rounded outline-none focus:border-red-1"
+                  />
+                </div>
+              ))}
+
+              {/* Price */}
               <div className="flex flex-col gap-2">
-                <label className="text-black-1 font-medium text-sm block" htmlFor="name">Product Name</label>
-
-                <input
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full border border-gray-2 p-2 text-[15px] text-black-1 font-normal rounded outline-none focus:border-red-1"
-              />
-              </div>
-            
-              {/*============  =============*/}
-              {/*============ DESCRIPTION =============*/}
-              <div className="flex flex-col gap-2">
-                <label className="text-black-1 font-medium text-sm block" htmlFor="">Description</label>
-
-                <input
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full border border-gray-2 p-2 text-[15px] text-black-1 font-normal rounded outline-none focus:border-red-1"
-                />
-              </div>
-
-              {/*============ IMAGE URL =============*/}
-              <div className="flex flex-col gap-2">
-                <label className="text-black-1 font-medium text-sm block" htmlFor="image">Image URL</label>
-                <input
-                  value={editImage}
-                  onChange={(e) => setEditImage(e.target.value)}
-                  className="w-full border border-gray-2 p-2 text-[15px] text-black-1 font-normal rounded outline-none focus:border-red-1"
-                />
-              </div>
-
-              {/*============ SIZE =============*/}
-              <div className="flex flex-col gap-2">
-                <label  className="text-black-1 font-medium text-sm block" htmlFor="size">Sizes (comma separated, e.g. S,M,L)</label>
-
-                <input
-                  value={editSizes}
-                  onChange={(e) => setEditSizes(e.target.value)}
-                  className="w-full border border-gray-2 p-2 text-[15px] text-black-1 font-normal rounded outline-none focus:border-red-1"
-                />
-              </div>
-
-              {/*============ COLORS =============*/}
-              <div className="flex flex-col gap-2">
-                <label className="text-black-1 font-medium text-sm block" htmlFor="color">Colors (comma separated, e.g. red,blue,black)</label>
-
-                <input
-                  value={editColors}
-                  onChange={(e) => setEditColors(e.target.value)}
-                  className="w-full border border-gray-2 p-2 text-[15px] text-black-1 font-normal rounded outline-none focus:border-red-1"
-                />
-              </div>
-
-              {/*============ PRICE =============*/}
-              <div className="flex flex-col gap-2">
-                <label className="text-black-1 font-normal" htmlFor="">Price</label>
-
+                <label className="text-black-1 font-normal">Price</label>
                 <input
                   type="number"
-                  value={editPrice}
-                  onChange={(e) => setEditPrice(e.target.value)}
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
                   className="w-full border border-gray-2 p-2 rounded outline-none focus:border-red-1"
                   min={0}
                 />
               </div>
 
-              {/*============ STOCK =============*/}
+              {/* Stock */}
               <div className="flex flex-col gap-2">
-                <label className="text-black-1 font-normal" htmlFor="">Stock</label>
-
+                <label className="text-black-1 font-normal">Stock</label>
                 <input
                   type="number"
-                  value={editStock}
-                  onChange={(e) => setEditStock(e.target.value)}
+                  name="stock"
+                  value={formData.stock}
+                  onChange={handleChange}
                   className="w-full border border-gray-2 p-2 rounded outline-none focus:border-red-1"
                   min={0}
                 />
               </div>
 
-              {/*============ ERROR TEXT =============*/}
               {error && <p className="text-red-2 text-sm mt-2">{error}</p>}
             </div>
           </div>
- 
-          {/*============ CANCEL AND SAVE BUTTONS =============*/}
+
+          {/*============ BUTTONS =============*/}
           <div className="flex items-center justify-center gap-3 mt-4">
             <button
               type="button"
               className="cursor-pointer border font-bold text-base w-full text-red-1 rounded-3xl py-2"
-              onClick={onClose}>
+              onClick={onClose}
+            >
               Cancel
             </button>
-
             <button
               type="submit"
               disabled={loading}
-              className="cursor-pointer bg-red-1 w-full font-bold text-base text-white p-2 rounded-3xl flex items-center justify-center">
+              className="cursor-pointer bg-red-1 w-full font-bold text-base text-white p-2 rounded-3xl flex items-center justify-center"
+            >
               {loading ? (
                 <span className="animate-spin h-5 w-5 mr-2 border-2 border-white border-t-transparent rounded-full"></span>
               ) : null}
