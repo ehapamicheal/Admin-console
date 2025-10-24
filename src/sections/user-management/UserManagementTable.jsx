@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { BiSearch } from "react-icons/bi";
-// import AddUserModal from "../../components/ui/AddUserModal";
+import AddUserModal from "../../components/ui/AddUserModal";
 import { BiChevronDown } from "react-icons/bi";
 import { toast } from "react-toastify";
 import PaginationButton from "../../components/PaginationButton";
@@ -12,7 +12,7 @@ import FulfilmentAgentModal from "../../components/ui/FulfilmentAgentModal";
 
 
 const UserManagementTable = () => {
-//   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -100,6 +100,7 @@ const UserManagementTable = () => {
         }
     };
 
+    // EXPORT ALL USERS AS CSV
     const handleExportCSV = async () => {
         if (exporting) return;
         
@@ -211,7 +212,7 @@ const UserManagementTable = () => {
             </div>
 
             {/*========== ADDE USER BUTTON ==========*/}
-            {/* <div className="text-right mt-4 md:mt-0">
+            <div className="text-right mt-4 md:mt-0">
                 <button
                     onClick={() => setIsModalOpen(true)}
                     type="button"
@@ -219,7 +220,7 @@ const UserManagementTable = () => {
                 >
                     Add User
                 </button>
-            </div> */}
+            </div>
         </div>
 
         {/*========== FILTER ROLE DROPDOWN ==========*/}
@@ -416,13 +417,13 @@ const UserManagementTable = () => {
         </div>
 
         {/*========== ADD USERS MODAL ==========*/}
-        {/* <AddUserModal
+        <AddUserModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             handleAddUser={() => {
             fetchUsers(1, "");
             }}
-        /> */}
+        />
 
         {/*========== USERS DETAILS MODAL ==========*/}
         <UserDetailsModal

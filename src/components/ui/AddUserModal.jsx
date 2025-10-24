@@ -125,9 +125,9 @@ const AddUserModal = ({ isOpen, onClose, handleAddUser }) => {
             onClick={onClose}
             type="button"
             aria-label="close modal"
-            className="cursor-pointer"
+            className="cursor-pointer group"
           >
-            <RiCloseLine className="text-red-2 text-2xl" />
+            <RiCloseLine className="text-red-2 text-2xl transition group-hover:rotate-90 duration-500" />
           </button>
         </div>
 

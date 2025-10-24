@@ -18,6 +18,7 @@ const AddProducts = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -92,7 +93,91 @@ const AddProducts = () => {
     }
   };
 
-  
+
+  const handleExportCSV = async () => {
+    try {
+      setExporting(true);
+      toast.info("Preparing full product list...");
+
+      const allProducts = [];
+      let page = 1;
+      let totalPages = 1;
+
+      // Loop through all pages until we fetch everything
+      do {
+        const response = await getProducts({ page, limit: 10 });
+        const productsFromAPI = response.items || [];
+        const totalItems = response.total || 0;
+        totalPages = Math.ceil(totalItems / 10);
+
+        allProducts.push(...productsFromAPI);
+        page++;
+      } while (page <= totalPages);
+
+      if (!allProducts.length) {
+        toast.error("No products available to export");
+        setExporting(false);
+        return;
+      }
+
+      // CSV headers 
+      const headers = [
+        "Created Date",
+        "Title",
+        "Description",
+        "Price",
+        "Sizes",
+        "Category Name",
+        "Category Description",
+      ];
+
+      // rows
+      const rows = allProducts.map((product) => [
+        new Date(product.createdAt).toLocaleDateString("en-GB"),
+        product.title || "",
+        product.description || "",
+        Number(product.price).toLocaleString(),
+        Array.isArray(product.sizes) ? product.sizes.join(", ") : "",
+        product.category?.name || "",
+        product.category?.description || "",
+      ]);
+
+      // CSV content
+      const csvContent =
+        [headers, ...rows]
+          .map((row) =>
+            row
+              .map((field) =>
+                `"${String(field).replace(/"/g, '""')}"`
+              )
+              .join(",")
+          )
+          .join("\n");
+
+      // downloadable CSV file (UTF-8 with BOM for Excel)
+      const blob = new Blob(["\uFEFF" + csvContent], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "products.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success("All products exported successfully!");
+    } catch (error) {
+      console.error("CSV export failed:", error);
+      toast.error("Failed to export CSV");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+
+
 
   return (
     <>
@@ -118,12 +203,23 @@ const AddProducts = () => {
         </div>
       </div>
 
-      <AddProductModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onAddProduct={handleAddProduct}
-      />
+     {/*========== DOWNLOAD CSV BUTTON ==========*/}
+      <div className="mt-5">
+        <button
+          onClick={handleExportCSV}
+          disabled={exporting}
+          className="text-red-1 text-sm w-fit cursor-pointer transition delay-75 hover:bg-red-1 hover:text-white border border-red-1 rounded-3xl py-2 px-3 disabled:opacity-60"
+          type="button"
+        >
+          {exporting ? (
+            <p className="flex items-center"><span className="mr-3 h-4 w-4 border-2 border-t-transparent border-black-3 rounded-full animate-spin "></span> Preparing...</p>
+          ) : (
+            <p className="">Export as CSV</p>
+          )}
+        </button>
+      </div>
 
+      {/*========== PRODUCTS TABLE ==========*/}
       <div className="mt-8 bg-white rounded-lg shadow-md">
         <div className="pb-2 overflow-x-auto">
           <table className="w-full border-collapse whitespace-nowrap">
@@ -235,7 +331,15 @@ const AddProducts = () => {
 
       </div>
 
-    
+
+      {/*========== ADD PRODUCT MODAL ==========*/}
+      <AddProductModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAddProduct={handleAddProduct}
+      />
+
+      {/*========== EDIT PRODUCT MODAL ==========*/}
       {editingProduct && (
         <EditModalProduct
           isOpen={true}
